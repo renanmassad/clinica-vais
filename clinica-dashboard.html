@@ -1254,8 +1254,8 @@ function buildLineChart(){
         callbacks:{label:c=>c.datasetIndex<2?` ${c.dataset.label}: R$ ${c.parsed.y.toLocaleString('pt-BR')}`:` Sessões: ${c.parsed.y}`}}},
       scales:{
         x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'Plus Jakarta Sans',size:11},color:'#94a3b8'}},
-        y:{min:0,position:'left',grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'JetBrains Mono',size:11},color:'#94a3b8',callback:v=>v>=1000?`R$${(v/1000).toFixed(0)}k`:`R$${v}`}},
-        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#fbbf24'}}
+        y:{min:0,suggestedMax:10,position:'left',grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'JetBrains Mono',size:11},color:'#94a3b8',callback:v=>v>=1000?`R$${(v/1000).toFixed(0)}k`:`R$${v}`}},
+        y1:{min:0,suggestedMax:5,position:'right',grid:{drawOnChartArea:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#fbbf24'}}
       }
     }
   });
@@ -1277,14 +1277,15 @@ function buildPieChart(){
 
   const ctxP=$('pieChart').getContext('2d');
   if(pieChart) pieChart.destroy();
+  const hasData = vals.length > 0 && vals.some(v=>v>0);
   pieChart=new Chart(ctxP,{
     type:'doughnut',
-    data:{labels,datasets:[{data:vals,backgroundColor:palette.slice(0,labels.length),borderWidth:0,hoverBorderWidth:3,hoverBorderColor:'#fff'}]},
+    data:{labels:hasData?labels:['Sem dados'],datasets:[{data:hasData?vals:[1],backgroundColor:hasData?palette.slice(0,labels.length):['#e2e8f0'],borderWidth:0,hoverBorderWidth:hasData?3:0,hoverBorderColor:'#fff'}]},
     options:{responsive:true,cutout:'65%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',bodyColor:'#e2e8f0',callbacks:{label:c=>{const t=vals.reduce((a,b)=>a+b,0);return ` ${c.label}: ${c.parsed} (${((c.parsed/t)*100).toFixed(0)}%)`}}}}}
   });
 
   const total=vals.reduce((a,b)=>a+b,0);
-  if(!data.length || data.every(v=>v===0)){
+  if(!vals.length || vals.every(v=>v===0)){
     $('pie-legend').innerHTML='<div class="pie-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sem atendimentos no período</div>';
     return;
   }
