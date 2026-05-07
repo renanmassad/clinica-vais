@@ -150,8 +150,8 @@ td{padding:10px 13px;vertical-align:middle}
 .modal{background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.25)}
 .modal-header{padding:20px 22px 16px;border-bottom:1px solid var(--slate-200);display:flex;align-items:center;justify-content:space-between}
 .modal-title{font-size:16px;font-weight:800;letter-spacing:-.4px}
-.modal-close{width:30px;height:30px;border:none;background:var(--slate-100);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--slate-500);transition:all .15s}
-.modal-close:hover{background:var(--slate-200)}
+.modal-close{width:32px;height:32px;border:none;background:var(--slate-100);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--slate-400);transition:all .15s;flex-shrink:0}
+.modal-close:hover{background:#fee2e2;color:var(--red)}
 .modal-body{padding:20px 22px}
 .modal-footer{padding:14px 22px;border-top:1px solid var(--slate-200);display:flex;justify-content:flex-end;gap:9px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -173,9 +173,9 @@ td{padding:10px 13px;vertical-align:middle}
 .progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-l),var(--teal-dk));transition:width .5s}
 
 /* ── LGPD BAR ── */
-.lgpd{background:linear-gradient(90deg,var(--slate-900),var(--slate-800));border:1px solid rgba(6,182,212,.25);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--slate-300)}
-.lgpd svg{color:var(--teal-l);flex-shrink:0;width:14px;height:14px}
-.lgpd strong{color:var(--teal-l)}
+.lgpd{background:#f0fdff;border:1px solid rgba(6,182,212,.3);border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--slate-500)}
+.lgpd svg{color:var(--teal-dk);flex-shrink:0;width:14px;height:14px}
+.lgpd strong{color:var(--teal-dk)}
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:36px;color:var(--slate-400);font-size:13px}
@@ -295,6 +295,18 @@ td{padding:10px 13px;vertical-align:middle}
 .tour-welcome{position:fixed;inset:0;z-index:8005;display:flex;align-items:center;justify-content:center;padding:20px}
 .tour-welcome-box{background:#fff;border-radius:20px;padding:36px 32px;max-width:440px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.3)}
 .tour-welcome-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--teal),#7b2d8b);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.pie-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--slate-300);font-size:12px;gap:8px;text-align:center}
+.pie-empty svg{width:28px;height:28px;opacity:.35}
+.tour-highlight{box-shadow:0 0 0 3px var(--teal),0 0 0 9999px rgba(10,20,40,.72)!important;transition:all .3s ease!important}
+.card{box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.kpi{transition:box-shadow .15s,transform .15s}
+.kpi:hover{box-shadow:0 4px 16px rgba(6,182,212,.12);transform:translateY(-1px)}
+.modal{box-shadow:0 20px 60px rgba(0,0,0,.18)!important}
 
 </style>
 </head>
@@ -423,10 +435,7 @@ td{padding:10px 13px;vertical-align:middle}
 
     <!-- ═══ HOME ═══ -->
     <div class="page active" id="pg-home">
-      <div class="lgpd">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span><strong>LGPD:</strong> Esta interface é apenas a camada visual. Em produção, prontuários e CPFs devem trafegar exclusivamente via API autenticada (TLS 1.3 + AES-256). Nunca exponha dados sensíveis no fonte.</span>
-      </div>
+      <div class="lgpd" id="lgpd-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span><strong>LGPD:</strong> Dados clínicos protegidos. Acesso restrito a profissionais autorizados.</span><button onclick="this.parentElement.style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--slate-400);padding:2px;display:flex;align-items:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
 
       <!-- Filtros -->
       <div class="card" style="padding:14px 18px">
@@ -676,7 +685,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-sessao-title">Nova Sessão</div>
-      <button class="modal-close" onclick="closeModal('modal-sessao')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-sessao')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="ms-edit-id">
@@ -765,7 +774,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-pac-title">Novo Paciente</div>
-      <button class="modal-close" onclick="closeModal('modal-paciente')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-paciente')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mp-edit-id">
@@ -817,7 +826,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-prof-title">Novo Profissional</div>
-      <button class="modal-close" onclick="closeModal('modal-profissional')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-profissional')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mpr-edit-id">
@@ -857,7 +866,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modal-trat-title">Novo Tratamento / Serviço</div>
-      <button class="modal-close" onclick="closeModal('modal-tratamento')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-tratamento')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mt-edit-id">
@@ -907,7 +916,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal" style="max-width:660px">
     <div class="modal-header">
       <div class="modal-title" id="modal-pront-title">Ficha de Anamnese</div>
-      <button class="modal-close" onclick="closeModal('modal-prontuario')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-prontuario')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mpront-edit-id">
@@ -956,7 +965,7 @@ td{padding:10px 13px;vertical-align:middle}
   <div class="modal" style="max-width:380px">
     <div class="modal-header">
       <div class="modal-title" style="color:var(--red)">Confirmar Exclusão</div>
-      <button class="modal-close" onclick="closeModal('modal-confirm')">✕</button>
+      <button class="modal-close" onclick="closeModal('modal-confirm')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body">
       <p style="color:var(--slate-600);font-size:13.5px" id="confirm-msg">Tem certeza que deseja excluir este registro?</p>
@@ -1245,7 +1254,7 @@ function buildLineChart(){
         callbacks:{label:c=>c.datasetIndex<2?` ${c.dataset.label}: R$ ${c.parsed.y.toLocaleString('pt-BR')}`:` Sessões: ${c.parsed.y}`}}},
       scales:{
         x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'Plus Jakarta Sans',size:11},color:'#94a3b8'}},
-        y:{position:'left',grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'JetBrains Mono',size:11},color:'#94a3b8',callback:v=>v>=1000?`R$${(v/1000).toFixed(0)}k`:`R$${v}`}},
+        y:{min:0,position:'left',grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'JetBrains Mono',size:11},color:'#94a3b8',callback:v=>v>=1000?`R$${(v/1000).toFixed(0)}k`:`R$${v}`}},
         y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{family:'JetBrains Mono',size:11},color:'#fbbf24'}}
       }
     }
@@ -1275,6 +1284,10 @@ function buildPieChart(){
   });
 
   const total=vals.reduce((a,b)=>a+b,0);
+  if(!data.length || data.every(v=>v===0)){
+    $('pie-legend').innerHTML='<div class="pie-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Sem atendimentos no período</div>';
+    return;
+  }
   $('pie-legend').innerHTML=labels.map((l,i)=>`
     <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
       <div style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:3px;background:${palette[i]};display:inline-block"></span><span style="color:var(--slate-600)">${l}</span></div>
