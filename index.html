@@ -408,6 +408,9 @@ input[type=number]{-moz-appearance:textfield}
   <button class="nav-btn" onclick="goTo('prontuarios',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Prontuários
   </button>
+  <button class="nav-btn" onclick="goTo('despesas',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Despesas
+  </button>
 
   <div class="sb-sect">Ajuda</div>
   <button class="nav-btn" onclick="tourShowWelcome()" style="color:var(--amber-l)">
@@ -483,6 +486,23 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
 
+      <!-- Metas + Alertas -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0">
+        <div class="card" id="card-metas">
+          <div class="card-header">
+            <div><div class="card-title">Metas do Mês</div><div class="card-sub">Progresso em relação às metas definidas</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="openModalMeta()" title="Definir metas">⚙</button>
+          </div>
+          <div id="metas-content" style="padding:4px 0 8px"></div>
+        </div>
+        <div class="card" id="card-alertas">
+          <div class="card-header">
+            <div><div class="card-title">Pacientes sem Retorno</div><div class="card-sub">Ausência desde a última sessão</div></div>
+          </div>
+          <div id="alertas-content" style="padding:4px 0 8px"></div>
+        </div>
+      </div>
+
       <!-- Charts -->
       <div class="charts-row">
         <div class="card">
@@ -515,7 +535,7 @@ input[type=number]{-moz-appearance:textfield}
           </button>
         </div>
         <div class="tbl-wrap"><table>
-          <thead><tr><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Convênio</th><th>Valor</th><th>Status</th><th>Prontuário</th><th></th></tr></thead>
+          <thead><tr><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Convênio</th><th>Valor</th><th>Status</th><th>Pagamento</th><th>Prontuário</th><th></th></tr></thead>
           <tbody id="agenda-body"></tbody>
         </table></div>
       </div>
@@ -539,7 +559,7 @@ input[type=number]{-moz-appearance:textfield}
           </div>
         </div>
         <div class="tbl-wrap"><table>
-          <thead><tr><th>Data</th><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Valor</th><th>Status</th><th>Prontuário</th><th></th></tr></thead>
+          <thead><tr><th>Data</th><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Valor</th><th>Status</th><th>Pagamento</th><th>Prontuário</th><th></th></tr></thead>
           <tbody id="agenda-full-body"></tbody>
         </table></div>
       </div>
@@ -601,6 +621,15 @@ input[type=number]{-moz-appearance:textfield}
           <thead><tr><th>Profissional</th><th>Especialidade</th><th>Sessões</th><th>Taxa Repasse</th><th>Receita Bruta</th><th>A Repassar</th><th>Ocupação</th></tr></thead>
           <tbody id="repasse-body"></tbody>
         </table></div>
+      </div>
+
+      <!-- DRE card -->
+      <div class="card" id="fin-dre-card">
+        <div class="card-header">
+          <div><div class="card-title">DRE — Resultado do Período</div><div class="card-sub">Receita líquida − Despesas = Lucro real</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="goTo('despesas',document.querySelector('.nav-btn[onclick*=\'despesas\']'))">Ver despesas →</button>
+        </div>
+        <div id="fin-dre-content" style="padding:8px 0"></div>
       </div>
 
       <!-- Histórico de sessões com valor -->
@@ -677,8 +706,93 @@ input[type=number]{-moz-appearance:textfield}
       </div>
     </div>
 
+    <!-- ═══ DESPESAS ═══ -->
+    <div class="page" id="pg-despesas">
+      <!-- DRE do mês -->
+      <div class="kpi-grid" id="dre-kpi-grid">
+        <div class="kpi teal">
+          <div class="kpi-top"><div class="kpi-ico teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><span class="kpi-badge" id="dre-badge-rec">Mês atual</span></div>
+          <div class="kpi-val" id="dre-receita">R$ 0</div>
+          <div class="kpi-lbl">Receita Líquida</div>
+          <div class="kpi-detail" id="dre-rec-det">—</div>
+        </div>
+        <div class="kpi red-kpi">
+          <div class="kpi-top"><div class="kpi-ico" style="background:rgba(239,68,68,.12);color:#ef4444"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg></div></div>
+          <div class="kpi-val" style="color:#ef4444" id="dre-despesas">R$ 0</div>
+          <div class="kpi-lbl">Total de Despesas</div>
+          <div class="kpi-detail" id="dre-desp-det">—</div>
+        </div>
+        <div class="kpi green">
+          <div class="kpi-top"><div class="kpi-ico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><span class="kpi-badge" id="dre-badge-lucro">—</span></div>
+          <div class="kpi-val" id="dre-lucro">R$ 0</div>
+          <div class="kpi-lbl">Lucro Real</div>
+          <div class="kpi-detail" id="dre-lucro-det">—</div>
+        </div>
+        <div class="kpi amber">
+          <div class="kpi-top"><div class="kpi-ico amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div></div>
+          <div class="kpi-val" id="dre-margem">0%</div>
+          <div class="kpi-lbl">Margem de Lucro</div>
+          <div class="kpi-detail" id="dre-margem-det">—</div>
+        </div>
+      </div>
+      <!-- Lista de despesas -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Despesas</div><div class="card-sub" id="desp-count-lbl">0 lançamentos</div></div>
+          <div class="card-actions">
+            <input type="date" class="inp inp-sm" id="desp-start">
+            <input type="date" class="inp inp-sm" id="desp-end">
+            <button class="btn btn-ghost btn-sm" onclick="renderDespesas()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-4.68"/></svg>Filtrar
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openModalDespesa()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova Despesa
+            </button>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Observações</th><th></th></tr></thead>
+          <tbody id="desp-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </main>
+
+<!-- ═══ MODAL: NOVA DESPESA ═══ -->
+<div class="overlay" id="modal-despesa">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-despesa-title">Nova Despesa</div>
+      <button class="modal-close" onclick="closeModal('modal-despesa')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="md-edit-id">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Data *</label><input type="date" class="inp" id="md-data"></div>
+        <div class="form-group"><label class="form-label">Valor (R$) *</label><input type="number" class="inp" id="md-valor" placeholder="0.00" step="0.01"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label class="form-label">Descrição *</label><input type="text" class="inp" id="md-descricao" placeholder="Ex: Aluguel, Material de escritório..."></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Categoria</label>
+          <select class="sel" id="md-categoria">
+            <option>Aluguel</option><option>Salários</option><option>Material Clínico</option><option>Manutenção</option><option>Marketing</option><option>Administrativo</option><option>Outros</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label class="form-label">Observações</label><textarea class="inp" id="md-obs" rows="2" placeholder="Observações adicionais..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-despesa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDespesa()">Salvar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ MODAL: NOVA SESSÃO ═══ -->
 <div class="overlay" id="modal-sessao">
@@ -745,6 +859,13 @@ input[type=number]{-moz-appearance:textfield}
             <option>Agendada</option><option>Realizada</option><option>Falta</option>
           </select>
         </div>
+        <div class="form-group"><label class="form-label">Pagamento</label>
+          <select class="sel" id="ms-pago">
+            <option value="false">Pendente</option><option value="true">Pago</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label class="form-label">Prontuário</label>
           <select class="sel" id="ms-prontuario">
             <option value="false">Pendente</option><option value="true">Preenchido</option>
@@ -1060,19 +1181,23 @@ let state = {
   pacientes: [],
   tratamentos: [],
   sessoes: [],
-  prontuarios: []
+  prontuarios: [],
+  despesas: [],
+  metas: []
 };
 
 // ── Carrega todos os dados do Supabase ─────────────────
 async function loadAll() {
   showLoading(true);
   try {
-    const [fisios, pacs, trats, sess, pronts] = await Promise.all([
+    const [fisios, pacs, trats, sess, pronts, desps, mts] = await Promise.all([
       sbGet('profissionais',  'order=nome'),
       sbGet('pacientes',      'order=nome'),
       sbGet('tratamentos',    'order=nome&ativo=eq.true'),
       sbGet('sessoes',        'order=data.desc,hora.desc&limit=500'),
-      sbGet('prontuarios',    'order=created_at.desc')
+      sbGet('prontuarios',    'order=created_at.desc'),
+      sbGet('despesas',       'order=data.desc&limit=500'),
+      sbGet('metas',          'order=mes.desc&limit=24')
     ]);
     // Normaliza nomes de campos do banco → nomes usados no JS
     state.fisioterapeutas = fisios.map(f=>({
@@ -1097,7 +1222,7 @@ async function loadAll() {
       id:s.id, data:s.data, hora:s.hora ? s.hora.slice(0,5) : '',
       fisioId:s.profissional_id, pacienteId:s.paciente_id,
       tratamentoId:s.tratamento_id, valor:+s.valor,
-      status:s.status, prontuario:s.prontuario,
+      status:s.status, prontuario:s.prontuario, pago:s.pago,
       dor:s.dor, tecnicas:s.tecnicas, evolucao:s.evolucao
     }));
     state.prontuarios = pronts.map(p=>({
@@ -1108,6 +1233,14 @@ async function loadAll() {
       alergias:p.alergias, cirurgico:p.historico_cirurgico,
       diagnostico:p.diagnostico, objetivos:p.objetivos,
       condutas:p.condutas, frequencia:p.frequencia, obs:p.observacoes
+    }));
+    state.despesas = desps.map(d=>({
+      id:d.id, data:d.data, descricao:d.descricao,
+      categoria:d.categoria, valor:+d.valor, obs:d.obs
+    }));
+    state.metas = mts.map(m=>({
+      id:m.id, mes:m.mes, receitaMeta:+m.receita_meta,
+      ocupacaoMeta:+m.ocupacao_meta, pacientesMeta:+m.pacientes_meta
     }));
   } catch(err) {
     showToast('Erro ao carregar dados: '+err.message, 'error');
@@ -1173,7 +1306,7 @@ function tipoBadge(t){
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
-const pageTitles = {home:'Visão Geral',agenda:'Agenda',pacientes:'Pacientes',financeiro:'Financeiro',profissionais:'Profissionais',tratamentos:'Tratamentos & Valores',prontuarios:'Prontuários'};
+const pageTitles = {home:'Visão Geral',agenda:'Agenda',pacientes:'Pacientes',financeiro:'Financeiro',profissionais:'Profissionais',tratamentos:'Tratamentos & Valores',prontuarios:'Prontuários',despesas:'Despesas & DRE'};
 
 function goTo(page, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1193,6 +1326,11 @@ function goTo(page, btn) {
   if(page==='profissionais') renderProfissionais();
   if(page==='tratamentos') renderTratamentos();
   if(page==='prontuarios') renderProntList();
+  if(page==='despesas'){
+    const hj=new Date(); const a=hj.getFullYear(); const m=String(hj.getMonth()+1).padStart(2,'0'); const u=new Date(a,hj.getMonth()+1,0).getDate();
+    if(!$('desp-start').value){ $('desp-start').value=`${a}-${m}-01`; $('desp-end').value=`${a}-${m}-${u}`; }
+    renderDespesas();
+  }
 }
 
 function openSB(){$('sidebar').classList.add('open');$('sb-overlay').style.display='block'}
@@ -1346,6 +1484,8 @@ function renderHome(){
 
   renderAgendaToday();
   buildPieChart();
+  renderMetas();
+  renderAlertas();
 }
 
 function renderAgendaToday(){
@@ -1406,6 +1546,7 @@ function renderAgendaFull(){
       <td><span style="font-size:12px;color:var(--slate-500)">${t.nome}</span></td>
       <td class="mono">${fmt(s.valor)}</td>
       <td>${statusBadge(s.status)}</td>
+      <td><span class="badge ${s.pago?'b-emerald':'b-amber'}">${s.pago?'✓ Pago':'Pendente'}</span></td>
       <td><span class="badge ${s.prontuario?'b-green':'b-red'}">${s.prontuario?'Preenchido':'Pendente'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-icon btn-sm" onclick="editSessao(${s.id})">✎</button>
@@ -1563,6 +1704,7 @@ function openModalSessao(){
   $('modal-sessao-title').textContent='Nova Sessão';
   ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao'].forEach(id=>{$(id).value=''});
   $('ms-status').value='Agendada';
+  $('ms-pago').value='false';
   $('ms-prontuario').value='false';
 
   $('modal-sessao').style.zIndex = '';
@@ -1585,6 +1727,7 @@ function editSessao(id){
   $('ms-tratamento').value=s.tratamentoId;
   $('ms-valor').value=s.valor;
   $('ms-status').value=s.status;
+  $('ms-pago').value=s.pago?'true':'false';
   $('ms-prontuario').value=s.prontuario?'true':'false';
   $('ms-dor').value=s.dor||'';
   $('ms-tecnicas').value=s.tecnicas||'';
@@ -1615,6 +1758,7 @@ function saveSessao(){
     tratamento_id: tratId||null,
     valor, status,
     prontuario: $('ms-prontuario').value==='true',
+    pago: $('ms-pago').value==='true',
     dor: +$('ms-dor').value||null,
     tecnicas: $('ms-tecnicas').value||null,
     evolucao: $('ms-evolucao').value||null
@@ -1626,7 +1770,7 @@ function saveSessao(){
     const norm = {id:row.id, data:row.data, hora:row.hora?.slice(0,5)||hora,
       fisioId:row.profissional_id, pacienteId:row.paciente_id,
       tratamentoId:row.tratamento_id, valor:+row.valor,
-      status:row.status, prontuario:row.prontuario,
+      status:row.status, prontuario:row.prontuario, pago:row.pago,
       dor:row.dor, tecnicas:row.tecnicas, evolucao:row.evolucao};
     if(editId){ const i=state.sessoes.findIndex(x=>x.id===editId); state.sessoes[i]=norm; }
     else { state.sessoes.unshift(norm); }
@@ -1922,6 +2066,35 @@ function renderFinanceiro(){
   $('fin-liquido').textContent=fmt(liquido);
   $('fin-sessoes').textContent=realizadas.length;
 
+  // DRE
+  const despPeriodo = state.despesas.filter(d=>(!start||d.data>=start)&&(!end||d.data<=end));
+  const totalDesp = despPeriodo.reduce((a,d)=>a+d.valor,0);
+  const lucro = liquido - totalDesp;
+  const margem = liquido>0?(lucro/liquido)*100:0;
+  const catMap={};
+  despPeriodo.forEach(d=>{ catMap[d.categoria]=(catMap[d.categoria]||0)+d.valor; });
+  const catRows = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--slate-100)">
+      <span style="font-size:12.5px;color:var(--slate-600)">${c}</span>
+      <span class="mono" style="font-size:12.5px;color:#ef4444">${fmt(v)}</span>
+    </div>`).join('');
+  $('fin-dre-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+      <div style="background:var(--slate-50);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--slate-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Receita Líquida</div>
+        <div class="mono" style="font-size:18px;font-weight:800;color:var(--teal)">${fmt(liquido)}</div>
+      </div>
+      <div style="background:var(--slate-50);border-radius:10px;padding:12px 16px">
+        <div style="font-size:11px;color:var(--slate-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Total Despesas</div>
+        <div class="mono" style="font-size:18px;font-weight:800;color:#ef4444">${fmt(totalDesp)}</div>
+      </div>
+      <div style="background:${lucro>=0?'rgba(16,185,129,.06)':'rgba(239,68,68,.06)'};border-radius:10px;padding:12px 16px;border:1px solid ${lucro>=0?'rgba(16,185,129,.2)':'rgba(239,68,68,.2)'}">
+        <div style="font-size:11px;color:var(--slate-400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Lucro Real · ${margem.toFixed(1)}%</div>
+        <div class="mono" style="font-size:18px;font-weight:800;color:${lucro>=0?'var(--emerald)':'#ef4444'}">${fmt(lucro)}</div>
+      </div>
+    </div>
+    ${catRows ? `<div style="font-size:11.5px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Despesas por Categoria</div>${catRows}` : '<p style="font-size:12.5px;color:var(--slate-400);padding:8px 0">Nenhuma despesa lançada no período. <button class="btn btn-ghost btn-sm" onclick="goTo('despesas',document.querySelector('.nav-btn[onclick*=\\'despesas\\']'))">Lançar despesa →</button></p>'}`;
+
   // Repasse por profissional
   $('repasse-body').innerHTML=state.fisioterapeutas.map(f=>{
     const minhas=realizadas.filter(s=>s.fisioId===f.id);
@@ -1975,7 +2148,7 @@ function confirmDelete(type,id){
 
 $('confirm-ok-btn').onclick=function(){
   const {type,id}=pendingDelete;
-  const tableMap={fisio:'profissionais',paciente:'pacientes',sessao:'sessoes',trat:'tratamentos'};
+  const tableMap={fisio:'profissionais',paciente:'pacientes',sessao:'sessoes',trat:'tratamentos',despesa:'despesas'};
   const table=tableMap[type];
   closeModal('modal-confirm');
   sbDelete(table,id).then(()=>{
@@ -1983,6 +2156,7 @@ $('confirm-ok-btn').onclick=function(){
     if(type==='paciente') state.pacientes=state.pacientes.filter(x=>x.id!==id);
     if(type==='sessao') state.sessoes=state.sessoes.filter(x=>x.id!==id);
     if(type==='trat') state.tratamentos=state.tratamentos.filter(x=>x.id!==id);
+    if(type==='despesa') state.despesas=state.despesas.filter(x=>x.id!==id);
     showToast('Registro excluído.');
     renderHome();
     if($('pg-agenda').classList.contains('active')) renderAgendaFull();
@@ -1990,6 +2164,7 @@ $('confirm-ok-btn').onclick=function(){
     if($('pg-profissionais').classList.contains('active')) renderProfissionais();
     if($('pg-tratamentos').classList.contains('active')) renderTratamentos();
     if($('pg-financeiro').classList.contains('active')) renderFinanceiro();
+    if($('pg-despesas').classList.contains('active')) renderDespesas();
   }).catch(err=>showToast('Erro ao excluir: '+err.message,'error'));
 };
 
@@ -2015,6 +2190,7 @@ function origOpenModalSessao(){
   $('modal-sessao-title').textContent='Nova Sessão';
   ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao'].forEach(id=>{$(id).value=''});
   $('ms-status').value='Agendada';
+  $('ms-pago').value='false';
   $('ms-prontuario').value='false';
   $('ms-data').value=new Date().toISOString().split('T')[0];
   openModal('modal-sessao');
@@ -2107,21 +2283,50 @@ function renderProntDetail(pacId){
     </div>`;
   }).join('') : '<p style="color:var(--slate-400);font-size:12.5px;padding:12px 0">Nenhuma evolução registrada ainda.</p>';
 
+  // Progresso do tratamento
+  const trat = p.tratamentoId ? getTrat(p.tratamentoId) : null;
+  const qtdMeta = trat && trat.qtd > 1 ? trat.qtd : null;
+  const progBar = qtdMeta ? (() => {
+    const pct = Math.min((allSess.length / qtdMeta) * 100, 100);
+    const color = pct >= 100 ? 'var(--emerald)' : pct >= 60 ? 'var(--teal)' : 'var(--amber-l)';
+    return `<div style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11.5px;color:var(--slate-500);font-weight:500">Progresso do tratamento</span>
+        <span style="font-size:11.5px;font-weight:700;color:${color}">${allSess.length}/${qtdMeta} sessões (${pct.toFixed(0)}%)</span>
+      </div>
+      <div class="progress-wrap" style="height:8px">
+        <div class="progress-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--slate-400);margin-top:3px">${trat.nome}</div>
+    </div>`;
+  })() : '';
+
+  // Dor sessions for EVA
+  const sessDor = state.sessoes.filter(s=>s.pacienteId===pacId&&s.status==='Realizada'&&s.dor!=null);
+
   $('pront-detail-area').innerHTML = `
     <div class="pront-detail">
       <div class="pront-section" style="padding:16px 20px">
         <div style="display:flex;align-items:center;gap:12px">
           <div class="avatar" style="width:44px;height:44px;font-size:14px">${initials(p.nome)}</div>
-          <div>
+          <div style="flex:1">
             <div style="font-size:16px;font-weight:800;letter-spacing:-.4px">${p.nome}</div>
             <div style="font-size:12px;color:var(--slate-400);margin-top:2px">
               ${p.nasc?'Nasc: '+p.nasc.split('-').reverse().join('/')+'  ·  ':''}${p.convenio}  ·  ${p.status}  ·  ${allSess.length} sessão(ões)
             </div>
+            ${progBar}
           </div>
-          <span class="${statusBadge(p.status)}" style="margin-left:auto"></span>
+          <span class="${statusBadge(p.status)}" style="margin-left:auto;align-self:flex-start"></span>
         </div>
       </div>
       ${anamneseCard}
+      ${sessDor.length>0?`<div class="pront-section">
+        <div class="pront-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Evolução da Dor (EVA) — ${sessDor.length} registros
+        </div>
+        <canvas id="eva-chart-${pacId}" height="100"></canvas>
+      </div>`:''}
       <div class="pront-section">
         <div class="pront-section-title">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -2130,6 +2335,8 @@ function renderProntDetail(pacId){
         ${evolHtml}
       </div>
     </div>`;
+  // Build EVA chart after DOM update
+  if(sessDor.length>0) setTimeout(()=>buildEvaChart(${pacId}),50);
 }
 
 function openModalProntuario(pacId){
@@ -2206,6 +2413,230 @@ function saveProntuario(){
   }).catch(err=>{ showToast('Erro ao salvar prontuário: '+err.message,'error'); });
 }
 
+
+
+// ═══════════════════════════════════════
+// DESPESAS CRUD
+// ═══════════════════════════════════════
+function renderDespesas(){
+  const start=$('desp-start').value, end=$('desp-end').value;
+  let list=state.despesas.filter(d=>{
+    if(start&&d.data<start) return false;
+    if(end&&d.data>end) return false;
+    return true;
+  });
+  $('desp-count-lbl').textContent=`${list.length} lançamento${list.length!==1?'s':''}`;
+
+  // DRE KPIs
+  const hoje=new Date(), ano=hoje.getFullYear(), mes=String(hoje.getMonth()+1).padStart(2,'0');
+  const mesStr=`${ano}-${mes}`;
+  const finStart=start||`${mesStr}-01`, finEnd=end||`${ano}-${mes}-${new Date(ano,hoje.getMonth()+1,0).getDate()}`;
+  const sessRealizadas=state.sessoes.filter(s=>s.status==='Realizada'&&s.data>=finStart&&s.data<=finEnd);
+  const bruto=sessRealizadas.reduce((a,s)=>a+s.valor,0);
+  const repasse=sessRealizadas.reduce((a,s)=>a+(s.valor*(getFisio(s.fisioId).repasse||0)/100),0);
+  const receita=bruto-repasse;
+  const totalDesp=list.reduce((a,d)=>a+d.valor,0);
+  const lucro=receita-totalDesp;
+  const margem=receita>0?(lucro/receita)*100:0;
+  $('dre-receita').textContent=fmt(receita);
+  $('dre-despesas').textContent=fmt(totalDesp);
+  $('dre-lucro').textContent=fmt(lucro);
+  $('dre-lucro').style.color=lucro>=0?'var(--emerald)':'#ef4444';
+  $('dre-margem').textContent=`${margem.toFixed(1)}%`;
+  $('dre-margem').style.color=margem>=20?'var(--emerald)':margem>=0?'var(--amber-l)':'#ef4444';
+  $('dre-badge-lucro').textContent=lucro>=0?'✓ Positivo':'⚠ Negativo';
+  $('dre-badge-lucro').className='kpi-badge '+(lucro>=0?'up':'down');
+  $('dre-rec-det').textContent=`${sessRealizadas.length} sessões realizadas`;
+  $('dre-desp-det').textContent=`${list.length} lançamentos`;
+  $('dre-lucro-det').textContent=`Margem: ${margem.toFixed(1)}%`;
+  $('dre-margem-det').textContent=`Lucro / Receita líquida`;
+
+  $('desp-body').innerHTML=!list.length?`<tr><td colspan="6"><div class="empty">Nenhuma despesa no período.</div></td></tr>`:
+    list.sort((a,b)=>b.data.localeCompare(a.data)).map(d=>`<tr>
+      <td class="mono">${d.data.split('-').reverse().join('/')}</td>
+      <td style="font-weight:500">${d.descricao}</td>
+      <td><span class="badge b-slate">${d.categoria}</span></td>
+      <td class="mono" style="font-weight:700;color:#ef4444">${fmt(d.valor)}</td>
+      <td style="font-size:12px;color:var(--slate-500)">${d.obs||'—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="editDespesa(${d.id})">✎</button>
+        <button class="btn btn-ghost btn-icon btn-sm" style="color:var(--red)" onclick="confirmDelete('despesa',${d.id})">✕</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openModalDespesa(){
+  $('md-edit-id').value='';
+  $('modal-despesa-title').textContent='Nova Despesa';
+  $('md-data').value=new Date().toISOString().split('T')[0];
+  ['md-valor','md-descricao','md-obs'].forEach(id=>{$(id).value='';});
+  $('md-categoria').value='Outros';
+  openModal('modal-despesa');
+}
+
+function editDespesa(id){
+  const d=state.despesas.find(x=>x.id===id); if(!d) return;
+  $('md-edit-id').value=id;
+  $('modal-despesa-title').textContent='Editar Despesa';
+  $('md-data').value=d.data;
+  $('md-valor').value=d.valor;
+  $('md-descricao').value=d.descricao;
+  $('md-categoria').value=d.categoria||'Outros';
+  $('md-obs').value=d.obs||'';
+  openModal('modal-despesa');
+}
+
+function saveDespesa(){
+  const data=$('md-data').value, valor=+$('md-valor').value, desc=$('md-descricao').value.trim();
+  if(!data||!valor||!desc){ alert('Preencha data, valor e descrição.'); return; }
+  const payload={
+    data, valor, descricao:desc,
+    categoria:$('md-categoria').value,
+    obs:$('md-obs').value||null
+  };
+  const editId=+$('md-edit-id').value;
+  closeModal('modal-despesa');
+  const action=editId?sbPatch('despesas',editId,payload):sbPost('despesas',payload);
+  action.then(rows=>{
+    const row=Array.isArray(rows)?rows[0]:rows;
+    const norm={id:row.id,data:row.data,descricao:row.descricao,categoria:row.categoria,valor:+row.valor,obs:row.obs};
+    if(editId){const i=state.despesas.findIndex(x=>x.id===editId);state.despesas[i]=norm;}
+    else{state.despesas.unshift(norm);}
+    showToast(editId?'Despesa atualizada!':'Despesa registrada!');
+    renderDespesas();
+    if($('pg-financeiro').classList.contains('active')) renderFinanceiro();
+  }).catch(err=>showToast('Erro: '+err.message,'error'));
+}
+
+// ═══════════════════════════════════════
+// METAS MENSAIS
+// ═══════════════════════════════════════
+let evaChartInstance = null;
+
+function renderMetas(){
+  const hoje=new Date();
+  const mesStr=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const meta=state.metas.find(m=>m.mes===mesStr);
+  const start=`${mesStr}-01`, end=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${new Date(hoje.getFullYear(),hoje.getMonth()+1,0).getDate()}`;
+  const sessRealizadas=state.sessoes.filter(s=>s.status==='Realizada'&&s.data>=start&&s.data<=end);
+  const bruto=sessRealizadas.reduce((a,s)=>a+s.valor,0);
+  const repasse=sessRealizadas.reduce((a,s)=>a+(s.valor*(getFisio(s.fisioId).repasse||0)/100),0);
+  const receita=bruto-repasse;
+  const ativos=state.pacientes.filter(p=>p.status==='Em Tratamento').length;
+  const total=state.sessoes.filter(s=>s.data>=start&&s.data<=end).length;
+  const ocup=total>0?(sessRealizadas.length/total)*100:0;
+
+  if(!meta){
+    $('metas-content').innerHTML=`<div style="text-align:center;padding:20px 10px">
+      <p style="font-size:12.5px;color:var(--slate-400);margin-bottom:10px">Nenhuma meta definida para este mês.</p>
+      <button class="btn btn-ghost btn-sm" onclick="openModalMeta()">Definir metas →</button>
+    </div>`;
+    return;
+  }
+
+  const metaItems=[
+    {lbl:'Receita Líquida', actual:receita, goal:meta.receitaMeta, fmt:v=>fmt(v)},
+    {lbl:'Taxa de Ocupação', actual:ocup, goal:meta.ocupacaoMeta, fmt:v=>`${v.toFixed(1)}%`},
+    {lbl:'Pacientes Ativos', actual:ativos, goal:meta.pacientesMeta, fmt:v=>`${v}`},
+  ];
+
+  $('metas-content').innerHTML=metaItems.map(m=>{
+    const pct=m.goal>0?Math.min((m.actual/m.goal)*100,100):0;
+    const color=pct>=100?'var(--emerald)':pct>=70?'var(--teal)':pct>=40?'var(--amber-l)':'#ef4444';
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;color:var(--slate-600);font-weight:500">${m.lbl}</span>
+        <span style="font-size:11.5px;color:${color};font-weight:600">${m.fmt(m.actual)} / ${m.fmt(m.goal)}</span>
+      </div>
+      <div class="progress-wrap" style="height:7px">
+        <div class="progress-fill" style="width:${pct.toFixed(1)}%;background:${color};transition:width .6s ease"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--slate-400);margin-top:3px;text-align:right">${pct.toFixed(0)}% da meta</div>
+    </div>`;
+  }).join('');
+}
+
+function openModalMeta(){
+  const hoje=new Date();
+  const mesStr=`${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const meta=state.metas.find(m=>m.mes===mesStr);
+  // Simple prompt approach
+  const rec=prompt('Meta de Receita Líquida (R$):', meta?meta.receitaMeta:'5000');
+  if(rec===null) return;
+  const ocup=prompt('Meta de Taxa de Ocupação (%):', meta?meta.ocupacaoMeta:'80');
+  if(ocup===null) return;
+  const pacs=prompt('Meta de Pacientes Ativos:', meta?meta.pacientesMeta:'20');
+  if(pacs===null) return;
+  const payload={mes:mesStr, receita_meta:+rec, ocupacao_meta:+ocup, pacientes_meta:+pacs};
+  const action=meta?sbPatch('metas',meta.id,payload):sbPost('metas',payload);
+  action.then(rows=>{
+    const row=Array.isArray(rows)?rows[0]:rows;
+    const norm={id:row.id,mes:row.mes,receitaMeta:+row.receita_meta,ocupacaoMeta:+row.ocupacao_meta,pacientesMeta:+row.pacientes_meta};
+    if(meta){const i=state.metas.findIndex(x=>x.id===meta.id);state.metas[i]=norm;}
+    else{state.metas.push(norm);}
+    showToast('Metas salvas!');
+    renderMetas();
+  }).catch(err=>showToast('Erro: '+err.message,'error'));
+}
+
+// ═══════════════════════════════════════
+// ALERTAS DE PACIENTES SEM RETORNO
+// ═══════════════════════════════════════
+function renderAlertas(){
+  const hoje=new Date();
+  const emTrat=state.pacientes.filter(p=>p.status==='Em Tratamento');
+  const alertas=[];
+  emTrat.forEach(p=>{
+    const sessoes=state.sessoes.filter(s=>s.pacienteId===p.id&&s.status==='Realizada').sort((a,b)=>b.data.localeCompare(a.data));
+    if(!sessoes.length){ alertas.push({pac:p, dias:999, ultima:'nunca'}); return; }
+    const ultima=new Date(sessoes[0].data+'T12:00:00');
+    const dias=Math.floor((hoje-ultima)/(1000*60*60*24));
+    if(dias>=15) alertas.push({pac:p, dias, ultima:sessoes[0].data.split('-').reverse().join('/')});
+  });
+  alertas.sort((a,b)=>b.dias-a.dias);
+  if(!alertas.length){
+    $('alertas-content').innerHTML=`<div style="text-align:center;padding:20px 10px"><p style="font-size:12.5px;color:var(--emerald);font-weight:600">✓ Todos os pacientes com retorno recente</p></div>`;
+    return;
+  }
+  $('alertas-content').innerHTML=alertas.slice(0,8).map(a=>{
+    const color=a.dias>=60?'#ef4444':a.dias>=30?'#d97706':'#f59e0b';
+    const label=a.dias>=60?'60+ dias':a.dias>=30?'30+ dias':'15+ dias';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--slate-100)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="av-sm" style="background:${color}22;color:${color}">${initials(a.pac.nome)}</div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600">${a.pac.nome}</div>
+          <div style="font-size:11px;color:var(--slate-400)">Última sessão: ${a.ultima}</div>
+        </div>
+      </div>
+      <span class="badge" style="background:${color}22;color:${color};font-size:10.5px">${label}</span>
+    </div>`;
+  }).join('')+(alertas.length>8?`<p style="font-size:11.5px;color:var(--slate-400);text-align:center;margin-top:8px">+${alertas.length-8} outros pacientes</p>`:'');
+}
+
+// ═══════════════════════════════════════
+// EVA + PROGRESSO NO PRONTUÁRIO
+// ═══════════════════════════════════════
+function buildEvaChart(pacId){
+  const canvasId='eva-chart-'+pacId;
+  const canvas=$(canvasId); if(!canvas) return;
+  const sessDor=state.sessoes.filter(s=>s.pacienteId===pacId&&s.status==='Realizada'&&s.dor!=null)
+    .sort((a,b)=>a.data.localeCompare(b.data));
+  if(sessDor.length<2){
+    canvas.parentElement.innerHTML='<p style="font-size:12px;color:var(--slate-400);padding:8px 0">Registre pelo menos 2 sessões com escala de dor para exibir o gráfico.</p>';
+    return;
+  }
+  const labels=sessDor.map(s=>s.data.slice(5).replace('-','/'));
+  const data=sessDor.map(s=>s.dor);
+  if(evaChartInstance) { try{ evaChartInstance.destroy(); }catch(e){} evaChartInstance=null; }
+  evaChartInstance=new Chart(canvas,{
+    type:'line',
+    data:{labels,datasets:[{label:'Dor (EVA)',data,borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,.08)',pointBackgroundColor:data.map(v=>v>=7?'#ef4444':v>=4?'#f59e0b':'#10b981'),pointRadius:5,borderWidth:2,tension:.3,fill:true}]},
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',bodyColor:'#e2e8f0',callbacks:{label:c=>`Dor: ${c.parsed.y}/10`}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#94a3b8'}},
+        y:{min:0,max:10,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#94a3b8',stepSize:2}}}}
+  });
+}
 
 // ═══════════════════════════════════════
 // TOUR GUIADO
@@ -2414,6 +2845,8 @@ async function init(){
   $('f-end').value   = `${ano}-${mes}-${ultimoDia}`;
   $('fin-start').value = `${ano}-${mes}-01`;
   $('fin-end').value   = `${ano}-${mes}-${ultimoDia}`;
+  $('desp-start').value = `${ano}-${mes}-01`;
+  $('desp-end').value   = `${ano}-${mes}-${ultimoDia}`;
 
   // Inicializa gráficos vazios enquanto carrega
   initCharts();
