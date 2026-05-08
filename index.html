@@ -503,6 +503,23 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
 
+      <!-- Aniversariantes + A Receber -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:0">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">🎂 Aniversariantes</div><div class="card-sub" id="aniv-sub">Pacientes do mês atual</div></div>
+          </div>
+          <div id="aniv-content" style="padding:4px 0 8px"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">💳 A Receber</div><div class="card-sub">Sessões com pagamento pendente</div></div>
+            <span class="kpi-badge neutral" id="a-receber-badge">—</span>
+          </div>
+          <div id="a-receber-content" style="padding:4px 0 8px"></div>
+        </div>
+      </div>
+
       <!-- Charts -->
       <div class="charts-row">
         <div class="card">
@@ -547,6 +564,12 @@ input[type=number]{-moz-appearance:textfield}
         <div class="card-header">
           <div><div class="card-title">Agenda Completa</div><div class="card-sub">Todas as sessões registradas</div></div>
           <div class="card-actions">
+            <button class="btn btn-ghost btn-sm" id="ag-view-list" onclick="setAgendaView('list')" style="font-weight:700">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Lista
+            </button>
+            <button class="btn btn-ghost btn-sm" id="ag-view-cal" onclick="setAgendaView('cal')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendário
+            </button>
             <input type="date" class="inp inp-sm" id="ag-filter-date">
             <select class="sel sel-sm" id="ag-filter-fisio"><option value="">Todos profissionais</option></select>
             <select class="sel sel-sm" id="ag-filter-status"><option value="">Todos status</option><option>Realizada</option><option>Agendada</option><option>Falta</option></select>
@@ -558,10 +581,26 @@ input[type=number]{-moz-appearance:textfield}
             </button>
           </div>
         </div>
-        <div class="tbl-wrap"><table>
-          <thead><tr><th>Data</th><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Valor</th><th>Status</th><th>Pagamento</th><th>Prontuário</th><th></th></tr></thead>
-          <tbody id="agenda-full-body"></tbody>
-        </table></div>
+        <!-- Vista lista -->
+        <div id="ag-list-view">
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Data</th><th>Hora</th><th>Paciente</th><th>Profissional</th><th>Tratamento</th><th>Valor</th><th>Status</th><th>Pagamento</th><th>Prontuário</th><th>⚡</th></tr></thead>
+            <tbody id="agenda-full-body"></tbody>
+          </table></div>
+        </div>
+        <!-- Vista calendário -->
+        <div id="ag-cal-view" style="display:none;padding:0 4px 12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px">
+            <button class="btn btn-ghost btn-sm" onclick="calPrev()">← Mês anterior</button>
+            <div style="font-size:15px;font-weight:700;color:var(--slate-700)" id="cal-month-label">—</div>
+            <button class="btn btn-ghost btn-sm" onclick="calNext()">Próximo mês →</button>
+          </div>
+          <div class="cal-header">
+            <div class="cal-day-hdr">Dom</div><div class="cal-day-hdr">Seg</div><div class="cal-day-hdr">Ter</div>
+            <div class="cal-day-hdr">Qua</div><div class="cal-day-hdr">Qui</div><div class="cal-day-hdr">Sex</div><div class="cal-day-hdr">Sáb</div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
       </div>
     </div>
 
@@ -632,8 +671,20 @@ input[type=number]{-moz-appearance:textfield}
         <div id="fin-dre-content" style="padding:8px 0"></div>
       </div>
 
-      <!-- Histórico de sessões com valor -->
+      <!-- Comparativo mensal -->
       <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Comparativo Mensal</div><div class="card-sub">Receita líquida vs despesas — últimos 4 meses</div></div>
+        </div>
+        <canvas id="barComparativo" height="90"></canvas>
+      </div>
+
+      <!-- Histórico de sessões com valor -->
+      <div class="card" id="extrato-card">
+        <div id="print-header" style="display:none">
+          <div style="font-size:20px;font-weight:800;color:var(--teal);margin-bottom:4px">Danielli Vais — Gestão Clínica</div>
+          <div style="font-size:13px;color:var(--slate-500)" id="print-subtitle"></div>
+        </div>
         <div class="card-header">
           <div><div class="card-title">Extrato de Sessões</div><div class="card-sub">Receitas detalhadas do período</div></div>
           <div class="card-actions">
@@ -641,6 +692,9 @@ input[type=number]{-moz-appearance:textfield}
             <input type="date" class="inp inp-sm" id="fin-end">
             <button class="btn btn-ghost btn-sm" onclick="renderFinanceiro()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-4.68"/></svg>Filtrar
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="exportarPDF()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF
             </button>
           </div>
         </div>
@@ -1492,6 +1546,8 @@ function renderHome(){
   buildPieChart();
   renderMetas();
   renderAlertas();
+  renderAniversariantes();
+  renderAReceber();
 }
 
 function renderAgendaToday(){
@@ -1555,9 +1611,32 @@ function renderAgendaFull(){
       <td><span class="badge ${s.pago?'b-emerald':'b-amber'}">${s.pago?'✓ Pago':'Pendente'}</span></td>
       <td><span class="badge ${s.prontuario?'b-green':'b-red'}">${s.prontuario?'Preenchido':'Pendente'}</span></td>
       <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-icon btn-sm" title="Evolução rápida" onclick="toggleQuickEvo(${s.id})">⚡</button>
         <button class="btn btn-ghost btn-icon btn-sm" onclick="editSessao(${s.id})">✎</button>
         <button class="btn btn-ghost btn-icon btn-sm" style="color:var(--red)" onclick="confirmDelete('sessao',${s.id})">✕</button>
       </div></td>
+    </tr>
+    <tr id="qevo-row-${s.id}" style="display:none">
+      <td colspan="10" style="padding:0">
+        <div class="quick-evo-row" id="qevo-${s.id}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <label style="font-size:11px;color:var(--slate-400);font-weight:600">DOR (1-10)</label>
+            <input type="number" class="inp inp-sm" id="qevo-dor-${s.id}" min="1" max="10" placeholder="—" style="width:70px" value="${s.dor||''}">
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+            <label style="font-size:11px;color:var(--slate-400);font-weight:600">TÉCNICAS</label>
+            <input type="text" class="inp inp-sm" id="qevo-tec-${s.id}" placeholder="Ex: TENS, Pilates..." value="${(s.tecnicas||'').replace(/"/g,'&quot;')}">
+          </div>
+          <div style="flex:2;display:flex;flex-direction:column;gap:2px">
+            <label style="font-size:11px;color:var(--slate-400);font-weight:600">EVOLUÇÃO</label>
+            <input type="text" class="inp inp-sm" id="qevo-evo-${s.id}" placeholder="Resumo da sessão..." value="${(s.evolucao||'').replace(/"/g,'&quot;')}">
+          </div>
+          <div style="display:flex;gap:6px;padding-bottom:2px">
+            <button class="btn btn-primary btn-sm" onclick="saveQuickEvo(${s.id})">Salvar</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleQuickEvo(${s.id})">✕</button>
+          </div>
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1708,7 +1787,7 @@ function openModalSessao(){
   populateSessaoModal();
   $('ms-edit-id').value='';
   $('modal-sessao-title').textContent='Nova Sessão';
-  ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao'].forEach(id=>{$(id).value=''});
+  ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao','ms-recorrencia'].forEach(id=>{$(id).value=''});
   $('ms-status').value='Agendada';
   $('ms-pago').value='false';
   $('ms-prontuario').value='false';
@@ -1769,21 +1848,55 @@ function saveSessao(){
     tecnicas: $('ms-tecnicas').value||null,
     evolucao: $('ms-evolucao').value||null
   };
+  const recorrencia = !editId ? (+$('ms-recorrencia').value||0) : 0;
   closeModal('modal-sessao');
-  const action = editId ? sbPatch('sessoes', editId, payload) : sbPost('sessoes', payload);
-  action.then(rows=>{
-    const row = Array.isArray(rows)?rows[0]:rows;
-    const norm = {id:row.id, data:row.data, hora:row.hora?.slice(0,5)||hora,
-      fisioId:row.profissional_id, pacienteId:row.paciente_id,
-      tratamentoId:row.tratamento_id, valor:+row.valor,
-      status:row.status, prontuario:row.prontuario, pago:row.pago,
-      dor:row.dor, tecnicas:row.tecnicas, evolucao:row.evolucao};
-    if(editId){ const i=state.sessoes.findIndex(x=>x.id===editId); state.sessoes[i]=norm; }
-    else { state.sessoes.unshift(norm); }
-    showToast(editId?'Sessão atualizada!':'Sessão agendada com sucesso!');
+
+  async function criarSessoes(){
+    const row0 = await sbPost('sessoes', payload);
+    const r0 = Array.isArray(row0)?row0[0]:row0;
+    const norm0 = {id:r0.id, data:r0.data, hora:r0.hora?.slice(0,5)||hora,
+      fisioId:r0.profissional_id, pacienteId:r0.paciente_id,
+      tratamentoId:r0.tratamento_id, valor:+r0.valor,
+      status:r0.status, prontuario:r0.prontuario, pago:r0.pago,
+      dor:r0.dor, tecnicas:r0.tecnicas, evolucao:r0.evolucao};
+    state.sessoes.unshift(norm0);
+    // criar sessões recorrentes
+    for(let w=1; w<=recorrencia; w++){
+      const d = new Date(data+'T12:00:00');
+      d.setDate(d.getDate() + w*7);
+      const nd = d.toISOString().split('T')[0];
+      const rp = Object.assign({}, payload, {data:nd});
+      try {
+        const rwArr = await sbPost('sessoes', rp);
+        const rw = Array.isArray(rwArr)?rwArr[0]:rwArr;
+        state.sessoes.unshift({id:rw.id, data:rw.data, hora:rw.hora?.slice(0,5)||hora,
+          fisioId:rw.profissional_id, pacienteId:rw.paciente_id,
+          tratamentoId:rw.tratamento_id, valor:+rw.valor,
+          status:rw.status, prontuario:rw.prontuario, pago:rw.pago,
+          dor:rw.dor, tecnicas:rw.tecnicas, evolucao:rw.evolucao});
+      } catch(e){}
+    }
+    showToast(recorrencia>0 ? `${recorrencia+1} sessões agendadas!` : 'Sessão agendada!');
     renderHome();
     if($('pg-agenda').classList.contains('active')) renderAgendaFull();
-  }).catch(err=>{ showToast('Erro ao salvar sessão: '+err.message,'error'); });
+  }
+
+  if(editId){
+    sbPatch('sessoes',editId,payload).then(rows=>{
+      const row=Array.isArray(rows)?rows[0]:rows;
+      const norm={id:row.id, data:row.data, hora:row.hora?.slice(0,5)||hora,
+        fisioId:row.profissional_id, pacienteId:row.paciente_id,
+        tratamentoId:row.tratamento_id, valor:+row.valor,
+        status:row.status, prontuario:row.prontuario, pago:row.pago,
+        dor:row.dor, tecnicas:row.tecnicas, evolucao:row.evolucao};
+      const i=state.sessoes.findIndex(x=>x.id===editId); state.sessoes[i]=norm;
+      showToast('Sessão atualizada!');
+      renderHome();
+      if($('pg-agenda').classList.contains('active')) renderAgendaFull();
+    }).catch(err=>showToast('Erro: '+err.message,'error'));
+  } else {
+    criarSessoes().catch(err=>showToast('Erro: '+err.message,'error'));
+  }
 }
 
 // ═══════════════════════════════════════
@@ -2121,6 +2234,9 @@ function renderFinanceiro(){
       </div></td>
     </tr>`;
   }).join('');
+
+  // Comparativo mensal
+  buildBarComparativo();
 
   // Extrato
   const sorted=realizadas.sort((a,b)=>b.data.localeCompare(a.data));
@@ -2642,6 +2758,250 @@ function buildEvaChart(pacId){
       scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#94a3b8'}},
         y:{min:0,max:10,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#94a3b8',stepSize:2}}}}
   });
+}
+
+
+// ═══════════════════════════════════════
+// ANIVERSARIANTES
+// ═══════════════════════════════════════
+function renderAniversariantes(){
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth()+1;
+  const diaAtual = hoje.getDate();
+  const aniv = state.pacientes.filter(p=>{
+    if(!p.nasc) return false;
+    const m = +p.nasc.split('-')[1];
+    return m === mesAtual;
+  }).map(p=>{
+    const dia = +p.nasc.split('-')[2];
+    return {pac:p, dia};
+  }).sort((a,b)=>a.dia-b.dia);
+
+  const mesNome = hoje.toLocaleDateString('pt-BR',{month:'long'});
+  $('aniv-sub').textContent = `${aniv.length} paciente(s) em ${mesNome}`;
+
+  if(!aniv.length){
+    $('aniv-content').innerHTML = '<p style="font-size:12.5px;color:var(--slate-400);padding:8px 0;text-align:center">Nenhum aniversariante este mês.</p>';
+    return;
+  }
+  $('aniv-content').innerHTML = aniv.slice(0,6).map(a=>{
+    const isHoje = a.dia === diaAtual;
+    const passou = a.dia < diaAtual;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--slate-100)">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +(isHoje ? '<span style="font-size:16px">🎂</span>' : '<span style="font-size:14px;color:var(--slate-300)">🎁</span>')
+        +'<div>'
+          +'<div style="font-size:12.5px;font-weight:600'+(isHoje?';color:var(--teal)':'')+'">'+(isHoje?'<strong>HOJE — </strong>':'')+a.pac.nome+'</div>'
+          +'<div style="font-size:11px;color:var(--slate-400)">'+a.pac.convenio+' · '+a.pac.status+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<span style="font-size:13px;font-weight:700;color:'+(isHoje?'var(--teal)':passou?'var(--slate-300)':'var(--slate-500)')+'">dia '+a.dia+'</span>'
+    +'</div>';
+  }).join('') + (aniv.length>6 ? '<p style="font-size:11px;color:var(--slate-400);text-align:center;margin-top:6px">+' + (aniv.length-6) + ' outros</p>' : '');
+}
+
+// ═══════════════════════════════════════
+// A RECEBER
+// ═══════════════════════════════════════
+function renderAReceber(){
+  const pendentes = state.sessoes.filter(s=>s.status==='Realizada' && !s.pago);
+  const total = pendentes.reduce((a,s)=>a+s.valor,0);
+  $('a-receber-badge').textContent = fmt(total);
+  $('a-receber-badge').className = 'kpi-badge ' + (total>0?'down':'up');
+
+  if(!pendentes.length){
+    $('a-receber-content').innerHTML = '<p style="font-size:12.5px;color:var(--emerald);font-weight:600;padding:8px 0;text-align:center">✓ Tudo em dia!</p>';
+    return;
+  }
+  const recentes = pendentes.sort((a,b)=>b.data.localeCompare(a.data)).slice(0,6);
+  $('a-receber-content').innerHTML = recentes.map(s=>{
+    const p = getPac(s.pacienteId);
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--slate-100)">'
+      +'<div>'
+        +'<div style="font-size:12.5px;font-weight:600">'+p.nome+'</div>'
+        +'<div style="font-size:11px;color:var(--slate-400)">'+s.data.split('-').reverse().join('/')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<span class="mono" style="font-size:12.5px;font-weight:700;color:#ef4444">'+fmt(s.valor)+'</span>'
+        +'<button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px" onclick="marcarPago('+s.id+')">Pago ✓</button>'
+      +'</div>'
+    +'</div>';
+  }).join('') + (pendentes.length>6 ? '<p style="font-size:11px;color:var(--slate-400);text-align:center;margin-top:6px">+' + (pendentes.length-6) + ' sessões pendentes</p>' : '');
+}
+
+function marcarPago(sessaoId){
+  sbPatch('sessoes', sessaoId, {pago:true}).then(()=>{
+    const s = state.sessoes.find(x=>x.id===sessaoId);
+    if(s) s.pago = true;
+    renderAReceber();
+    showToast('Sessão marcada como paga!');
+  }).catch(err=>showToast('Erro: '+err.message,'error'));
+}
+
+// ═══════════════════════════════════════
+// CALENDÁRIO
+// ═══════════════════════════════════════
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let agendaView = 'list';
+
+function setAgendaView(v){
+  agendaView = v;
+  $('ag-list-view').style.display = v==='list' ? '' : 'none';
+  $('ag-cal-view').style.display  = v==='cal'  ? '' : 'none';
+  $('ag-view-list').style.fontWeight = v==='list' ? '700' : '';
+  $('ag-view-cal').style.fontWeight  = v==='cal'  ? '700' : '';
+  if(v==='cal') renderCalendario();
+}
+
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendario(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendario(); }
+
+function renderCalendario(){
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  $('cal-month-label').textContent = meses[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const hoje = new Date().toISOString().split('T')[0];
+
+  // Sessões do mês
+  const mesStr = calYear+'-'+String(calMonth+1).padStart(2,'0');
+  const sessMes = state.sessoes.filter(s=>s.data.startsWith(mesStr));
+
+  // Agrupa por dia
+  const byDay = {};
+  sessMes.forEach(s=>{
+    const d = +s.data.split('-')[2];
+    if(!byDay[d]) byDay[d]=[];
+    byDay[d].push(s);
+  });
+
+  let html = '';
+  // Empty cells before first day
+  for(let i=0;i<firstDay;i++) html += '<div class="cal-day other-month"></div>';
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday = dateStr === hoje;
+    const sessions = byDay[d] || [];
+    const maxShow = 3;
+    const shown = sessions.slice(0,maxShow);
+    const more = sessions.length - maxShow;
+
+    const eventsHtml = shown.map(s=>{
+      const p = getPac(s.pacienteId);
+      const nome = p.nome.split(' ')[0];
+      return '<div class="cal-event status-'+s.status+'" onclick="editSessao('+s.id+')" title="'+p.nome+' — '+s.hora+'">'+s.hora+' '+nome+'</div>';
+    }).join('');
+
+    html += '<div class="cal-day'+(isToday?' today':'')+(sessions.length?' has-events':'')+'" onclick="calDayClick(\''+dateStr+'\')">'
+      +'<div class="cal-day-num">'+d+'</div>'
+      +eventsHtml
+      +(more>0 ? '<div class="cal-more">+'+more+' mais</div>' : '')
+    +'</div>';
+  }
+  $('cal-grid').innerHTML = html;
+}
+
+function calDayClick(dateStr){
+  // Switch to list view filtered by date
+  setAgendaView('list');
+  $('ag-filter-date').value = dateStr;
+  renderAgendaFull();
+}
+
+// ═══════════════════════════════════════
+// EVOLUÇÃO RÁPIDA
+// ═══════════════════════════════════════
+function toggleQuickEvo(id){
+  const row = $('qevo-row-'+id);
+  const div = $('qevo-'+id);
+  if(!row || !div) return;
+  const isOpen = div.classList.contains('open');
+  // Close all others
+  document.querySelectorAll('.quick-evo-row.open').forEach(el=>el.classList.remove('open'));
+  document.querySelectorAll('[id^="qevo-row-"]').forEach(el=>{ if(el.id!=='qevo-row-'+id) el.style.display='none'; });
+  if(isOpen){ row.style.display='none'; div.classList.remove('open'); }
+  else { row.style.display=''; div.classList.add('open'); }
+}
+
+function saveQuickEvo(id){
+  const dor = +$('qevo-dor-'+id).value||null;
+  const tec = $('qevo-tec-'+id).value||null;
+  const evo = $('qevo-evo-'+id).value||null;
+  if(!dor && !tec && !evo){ showToast('Preencha pelo menos um campo.','warning'); return; }
+  const payload = {dor, tecnicas:tec, evolucao:evo, status:'Realizada', prontuario:true};
+  sbPatch('sessoes',id,payload).then(rows=>{
+    const row=Array.isArray(rows)?rows[0]:rows;
+    const s=state.sessoes.find(x=>x.id===id);
+    if(s){ s.dor=row.dor; s.tecnicas=row.tecnicas; s.evolucao=row.evolucao; s.status='Realizada'; s.prontuario=true; }
+    toggleQuickEvo(id);
+    showToast('Evolução salva!');
+    renderAgendaFull();
+    renderHome();
+  }).catch(err=>showToast('Erro: '+err.message,'error'));
+}
+
+// ═══════════════════════════════════════
+// COMPARATIVO MENSAL (barchart)
+// ═══════════════════════════════════════
+let barChart = null;
+
+function buildBarComparativo(){
+  const hoje = new Date();
+  const meses = [];
+  for(let i=3;i>=0;i--){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
+    meses.push({key, label:label.charAt(0).toUpperCase()+label.slice(1)});
+  }
+  const receitas = meses.map(m=>{
+    const s1 = m.key+'-01', s2 = m.key+'-31';
+    const sess = state.sessoes.filter(s=>s.status==='Realizada'&&s.data>=s1&&s.data<=s2);
+    const bruto = sess.reduce((a,s)=>a+s.valor,0);
+    const rep = sess.reduce((a,s)=>a+(s.valor*(getFisio(s.fisioId).repasse||0)/100),0);
+    return bruto-rep;
+  });
+  const despesas = meses.map(m=>{
+    return state.despesas.filter(d=>d.data.startsWith(m.key)).reduce((a,d)=>a+d.valor,0);
+  });
+  const lucros = receitas.map((r,i)=>r-despesas[i]);
+
+  const ctx = $('barComparativo').getContext('2d');
+  if(barChart) barChart.destroy();
+  barChart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:meses.map(m=>m.label),
+      datasets:[
+        {label:'Receita Líquida',data:receitas,backgroundColor:'rgba(6,182,212,.7)',borderRadius:6,borderSkipped:false},
+        {label:'Despesas',data:despesas,backgroundColor:'rgba(239,68,68,.55)',borderRadius:6,borderSkipped:false},
+        {label:'Lucro',data:lucros,backgroundColor:'rgba(16,185,129,.65)',borderRadius:6,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'top',labels:{font:{family:'Plus Jakarta Sans',size:11},boxWidth:12}},
+        tooltip:{backgroundColor:'#0f172a',titleColor:'#94a3b8',bodyColor:'#e2e8f0',
+          callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:11},color:'#94a3b8'}},
+        y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'JetBrains Mono',size:10},color:'#94a3b8',callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+// EXPORTAR PDF
+// ═══════════════════════════════════════
+function exportarPDF(){
+  const start = $('fin-start').value, end = $('fin-end').value;
+  const sub = 'Extrato de ' + (start?start.split('-').reverse().join('/'):'-') + ' a ' + (end?end.split('-').reverse().join('/'):'-');
+  $('print-subtitle').textContent = sub;
+  $('print-header').style.display = 'block';
+  window.print();
+  setTimeout(()=>{ $('print-header').style.display='none'; }, 1000);
 }
 
 // ═══════════════════════════════════════
