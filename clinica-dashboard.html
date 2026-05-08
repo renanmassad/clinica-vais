@@ -608,8 +608,8 @@ input[type=number]{-moz-appearance:textfield}
         <div class="card-header">
           <div><div class="card-title">Extrato de Sessões</div><div class="card-sub">Receitas detalhadas do período</div></div>
           <div class="card-actions">
-            <input type="date" class="inp inp-sm" id="fin-start" value="2025-06-01">
-            <input type="date" class="inp inp-sm" id="fin-end" value="2025-06-30">
+            <input type="date" class="inp inp-sm" id="fin-start">
+            <input type="date" class="inp inp-sm" id="fin-end">
             <button class="btn btn-ghost btn-sm" onclick="renderFinanceiro()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-4.68"/></svg>Filtrar
             </button>
@@ -1185,7 +1185,11 @@ function goTo(page, btn) {
   if(page==='home') renderHome();
   if(page==='agenda') { populateAgendaFilters(); renderAgendaFull(); }
   if(page==='pacientes') renderPacientes();
-  if(page==='financeiro') renderFinanceiro();
+  if(page==='financeiro'){
+    const hj=new Date(); const a=hj.getFullYear(); const m=String(hj.getMonth()+1).padStart(2,'0'); const u=new Date(a,hj.getMonth()+1,0).getDate();
+    if(!$('fin-start').value){ $('fin-start').value=`${a}-${m}-01`; $('fin-end').value=`${a}-${m}-${u}`; }
+    renderFinanceiro();
+  }
   if(page==='profissionais') renderProfissionais();
   if(page==='tratamentos') renderTratamentos();
   if(page==='prontuarios') renderProntList();
@@ -1560,7 +1564,7 @@ function openModalSessao(){
   ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao'].forEach(id=>{$(id).value=''});
   $('ms-status').value='Agendada';
   $('ms-prontuario').value='false';
-  $('ms-data').value='2025-06-09';
+
   $('modal-sessao').style.zIndex = '';
   openModal('modal-sessao');
 }
@@ -2408,6 +2412,8 @@ async function init(){
   const ultimoDia = new Date(ano, hoje.getMonth()+1, 0).getDate();
   $('f-start').value = `${ano}-${mes}-01`;
   $('f-end').value   = `${ano}-${mes}-${ultimoDia}`;
+  $('fin-start').value = `${ano}-${mes}-01`;
+  $('fin-end').value   = `${ano}-${mes}-${ultimoDia}`;
 
   // Inicializa gráficos vazios enquanto carrega
   initCharts();
