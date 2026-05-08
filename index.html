@@ -627,7 +627,7 @@ input[type=number]{-moz-appearance:textfield}
       <div class="card" id="fin-dre-card">
         <div class="card-header">
           <div><div class="card-title">DRE — Resultado do Período</div><div class="card-sub">Receita líquida − Despesas = Lucro real</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('despesas',document.querySelector('.nav-btn[onclick*=\'despesas\']'))">Ver despesas →</button>
+          <button class="btn btn-ghost btn-sm" onclick="navTo('despesas')">Ver despesas →</button>
         </div>
         <div id="fin-dre-content" style="padding:8px 0"></div>
       </div>
@@ -1333,6 +1333,10 @@ function goTo(page, btn) {
   }
 }
 
+function navTo(page){
+  const btn=document.querySelector(\`.nav-btn[onclick*="'${page}'"]\`);
+  if(btn) goTo(page,btn);
+}
 function openSB(){$('sidebar').classList.add('open');$('sb-overlay').style.display='block'}
 function closeSB(){$('sidebar').classList.remove('open');$('sb-overlay').style.display='none'}
 
@@ -2093,7 +2097,7 @@ function renderFinanceiro(){
         <div class="mono" style="font-size:18px;font-weight:800;color:${lucro>=0?'var(--emerald)':'#ef4444'}">${fmt(lucro)}</div>
       </div>
     </div>
-    ${catRows ? `<div style="font-size:11.5px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Despesas por Categoria</div>${catRows}` : '<p style="font-size:12.5px;color:var(--slate-400);padding:8px 0">Nenhuma despesa lançada no período. <button class="btn btn-ghost btn-sm" onclick="goTo('despesas',document.querySelector('.nav-btn[onclick*=\\'despesas\\']'))">Lançar despesa →</button></p>'}`;
+    ${catRows ? `<div style="font-size:11.5px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Despesas por Categoria</div>${catRows}` : `<p style="font-size:12.5px;color:var(--slate-400);padding:8px 0">Nenhuma despesa lançada no período. <button class="btn btn-ghost btn-sm" onclick="navTo('despesas')">Lançar despesa →</button></p>`}`;
 
   // Repasse por profissional
   $('repasse-body').innerHTML=state.fisioterapeutas.map(f=>{
