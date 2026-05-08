@@ -1334,8 +1334,10 @@ function goTo(page, btn) {
 }
 
 function navTo(page){
-  const btn=document.querySelector(\`.nav-btn[onclick*="'${page}'"]\`);
-  if(btn) goTo(page,btn);
+  var btns=document.querySelectorAll('.nav-btn');
+  for(var i=0;i<btns.length;i++){
+    if(btns[i].getAttribute('onclick')||'' .indexOf(page)>=0){goTo(page,btns[i]);return;}
+  }
 }
 function openSB(){$('sidebar').classList.add('open');$('sb-overlay').style.display='block'}
 function closeSB(){$('sidebar').classList.remove('open');$('sb-overlay').style.display='none'}
