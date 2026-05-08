@@ -2320,7 +2320,7 @@ function renderProntDetail(pacId){
             </div>
             ${progBar}
           </div>
-          <span class="${statusBadge(p.status)}" style="margin-left:auto;align-self:flex-start"></span>
+          <span style="margin-left:auto;align-self:flex-start">${statusBadge(p.status)}</span>
         </div>
       </div>
       ${anamneseCard}
@@ -2340,7 +2340,7 @@ function renderProntDetail(pacId){
       </div>
     </div>`;
   // Build EVA chart after DOM update
-  if(sessDor.length>0) setTimeout(()=>buildEvaChart(${pacId}),50);
+  if(sessDor.length>0) setTimeout(()=>buildEvaChart(pacId),50);
 }
 
 function openModalProntuario(pacId){
