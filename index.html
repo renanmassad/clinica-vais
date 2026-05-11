@@ -925,6 +925,9 @@ input[type=number]{-moz-appearance:textfield}
             <option value="false">Pendente</option><option value="true">Preenchido</option>
           </select>
         </div>
+        <div class="form-group" id="ms-recorrencia-row"><label class="form-label">Repetir (semanas)</label>
+          <input type="number" class="inp" id="ms-recorrencia" min="0" max="52" placeholder="0 = sem repetição">
+        </div>
       </div>
       <div class="form-divider">Evolução (opcional)</div>
       <div class="form-row full">
@@ -1390,7 +1393,8 @@ function goTo(page, btn) {
 function navTo(page){
   var btns=document.querySelectorAll('.nav-btn');
   for(var i=0;i<btns.length;i++){
-    if(btns[i].getAttribute('onclick')||'' .indexOf(page)>=0){goTo(page,btns[i]);return;}
+    var oc=btns[i].getAttribute('onclick')||'';
+    if(oc.indexOf(page)>=0){goTo(page,btns[i]);return;}
   }
 }
 function openSB(){$('sidebar').classList.add('open');$('sb-overlay').style.display='block'}
@@ -1597,7 +1601,7 @@ function renderAgendaFull(){
   }).sort((a,b)=>a.data===b.data?a.hora.localeCompare(b.hora):b.data.localeCompare(a.data));
 
   const body=$('agenda-full-body');
-  if(!list.length){body.innerHTML=`<tr><td colspan="9"><div class="empty">Nenhuma sessão encontrada.</div></td></tr>`;return}
+  if(!list.length){body.innerHTML=`<tr><td colspan="10"><div class="empty">Nenhuma sessão encontrada.</div></td></tr>`;return}
   body.innerHTML=list.map(s=>{
     const p=getPac(s.pacienteId), f=getFisio(s.fisioId), t=getTrat(s.tratamentoId);
     return `<tr>
@@ -1820,6 +1824,7 @@ function editSessao(id){
   $('ms-dor').value=s.dor||'';
   $('ms-tecnicas').value=s.tecnicas||'';
   $('ms-evolucao').value=s.evolucao||'';
+  if($('ms-recorrencia-row')) $('ms-recorrencia-row').style.display='none';
   $('modal-sessao').style.zIndex = '';
   openModal('modal-sessao');
 }
@@ -2310,11 +2315,12 @@ function origOpenModalSessao(){
   populateSessaoModal();
   $('ms-edit-id').value='';
   $('modal-sessao-title').textContent='Nova Sessão';
-  ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao'].forEach(id=>{$(id).value=''});
+  ['ms-data','ms-hora','ms-valor','ms-dor','ms-tecnicas','ms-evolucao','ms-recorrencia'].forEach(id=>{$(id).value=''});
   $('ms-status').value='Agendada';
   $('ms-pago').value='false';
   $('ms-prontuario').value='false';
   $('ms-data').value=new Date().toISOString().split('T')[0];
+  if($('ms-recorrencia-row')) $('ms-recorrencia-row').style.display='';
   openModal('modal-sessao');
 }
 
