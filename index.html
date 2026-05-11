@@ -1756,7 +1756,10 @@ function populateSessaoModal(preSelectPacId){
   // Populate fisio native select
   const sf=$('ms-fisio');
   sf.innerHTML='<option value="">Selecione</option>';
-  state.fisioterapeutas.filter(f=>f.status==='Ativo').forEach(f=>{sf.innerHTML+=`<option value="${f.id}">${f.nome}</option>`});
+  const activeFisios = state.fisioterapeutas.filter(f=>f.status==='Ativo');
+  activeFisios.forEach(f=>{sf.innerHTML+=`<option value="${f.id}">${f.nome}</option>`});
+  // Auto-select if only one professional
+  if(activeFisios.length===1) sf.value = activeFisios[0].id;
 
   // Reset custom selects
   customSelState.pac.value = preSelectPacId||'';
@@ -1835,9 +1838,10 @@ function saveSessao(){
   const tratId=+$('ms-tratamento').value, valor=+$('ms-valor').value;
   const status=$('ms-status').value;
   if(!data||!hora||!pacId||!fisioId||!valor){
-    if(!pacId) { toggleCustomSel('pac'); }
-    else if(!tratId) { toggleCustomSel('trat'); }
-    else alert('Preencha todos os campos obrigatórios.');
+    if(!pacId) { showToast('Selecione um paciente.','error'); toggleCustomSel('pac'); }
+    else if(!fisioId) { showToast('Selecione um profissional.','error'); }
+    else if(!valor) { showToast('Informe o valor da sessão.','error'); $('ms-valor').focus(); }
+    else showToast('Preencha data e horário.','error');
     return;
   }
   const editId=+$('ms-edit-id').value;
