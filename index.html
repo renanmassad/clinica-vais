@@ -3122,28 +3122,32 @@ function tourFinish(){
 
 function tourShowStep(){
   const step = tourSteps[tourIdx];
-  
-  // Navigate to the right page if needed
+
   if(step.page){
     const pgBtn = document.querySelector(`.nav-btn[onclick*="goTo('${step.page}"]`);
     if(pgBtn) goTo(step.page, pgBtn);
   }
 
-  // Wait a tick for page render
   setTimeout(()=>{
     const el = document.querySelector(step.target);
     if(!el){ tourNext(); return; }
 
-    const rect = el.getBoundingClientRect();
+    const raw = el.getBoundingClientRect();
     const pad = 8;
+    const vw = window.innerWidth, vh = window.innerHeight;
 
-    // Highlight
+    // Clamp highlight to viewport so it never bleeds off-screen
+    const hlTop    = Math.max(4, raw.top - pad);
+    const hlLeft   = Math.max(4, raw.left - pad);
+    const hlRight  = Math.min(vw - 4, raw.right + pad);
+    const hlBottom = Math.min(vh - 4, raw.bottom + pad);
+
     const hl = document.getElementById('tour-hl');
     hl.style.display = 'block';
-    hl.style.top  = (rect.top - pad) + 'px';
-    hl.style.left = (rect.left - pad) + 'px';
-    hl.style.width  = (rect.width + pad*2) + 'px';
-    hl.style.height = (rect.height + pad*2) + 'px';
+    hl.style.top    = hlTop + 'px';
+    hl.style.left   = hlLeft + 'px';
+    hl.style.width  = (hlRight - hlLeft) + 'px';
+    hl.style.height = (hlBottom - hlTop) + 'px';
 
     // Tooltip
     const tip = document.getElementById('tour-tip');
@@ -3154,45 +3158,42 @@ function tourShowStep(){
     document.getElementById('tour-prev').style.display = tourIdx === 0 ? 'none' : '';
     document.getElementById('tour-next').textContent = tourIdx === tourSteps.length-1 ? 'Concluir ✓' : 'Próximo →';
 
-    // Dots
     document.getElementById('tour-dots').innerHTML = tourSteps.map((_,i)=>
       `<div class="tour-dot${i===tourIdx?' active':i<tourIdx?' done':''}"></div>`
     ).join('');
 
-    // Remove old arrow classes
     tip.className = 'tour-tooltip';
 
-    // Position tooltip
-    const tipW = 310, tipH = 180;
+    // Position tooltip relative to clamped highlight bounds
+    const tipW = 310, tipH = 210;
     let top, left;
-    const vw = window.innerWidth, vh = window.innerHeight;
+    const hlCx = hlLeft + (hlRight - hlLeft) / 2; // center x of visible highlight
 
     if(step.arrow === 'top'){
-      top = rect.bottom + pad + 14;
-      left = rect.left + rect.width/2 - tipW/2;
+      top  = hlBottom + 14;
+      left = hlCx - tipW / 2;
       tip.classList.add('arrow-top');
     } else if(step.arrow === 'bottom'){
-      top = rect.top - tipH - pad - 14;
-      left = rect.left;
+      top  = hlTop - tipH - 14;
+      left = hlCx - tipW / 2;
       tip.classList.add('arrow-bottom');
     } else if(step.arrow === 'left'){
-      top = rect.top;
-      left = rect.right + pad + 14;
+      top  = hlTop;
+      left = hlRight + 14;
       tip.classList.add('arrow-left');
     } else {
-      top = rect.top;
-      left = rect.left - tipW - pad - 14;
+      top  = hlTop;
+      left = hlLeft - tipW - 14;
       tip.classList.add('arrow-right');
     }
 
-    // Clamp to viewport
+    // Clamp tooltip to viewport
     left = Math.max(10, Math.min(left, vw - tipW - 10));
     top  = Math.max(10, Math.min(top,  vh - tipH - 10));
 
     tip.style.top  = top + 'px';
     tip.style.left = left + 'px';
 
-    // Scroll element into view
     el.scrollIntoView({behavior:'smooth', block:'center'});
   }, 350);
 }
